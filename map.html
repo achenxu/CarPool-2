@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <title>Simple Polylines</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+
+
+
+var colorObject = {
+  index: 0,
+  colors: ['#14CBCC', '#B21285', '#FFDA13', '#09B1B2', '#6F00FF', '#FF9200', '#72B209', '#004AFF'],
+  getNext: function() {
+    color = this.colors[this.index];
+    this.index = (this.index+1) % this.colors.length;
+    //console.log("Color: "+color+", index: "+this.index);
+    return color;
+  }
+}
+
+var map, lineSymbol, googleRef;
+
+// This example creates a 2-pixel-wide red polyline showing the path of William
+// Kingsford Smith's first trans-Pacific flight between Oakland, CA, and
+// Brisbane, Australia.
+function initMap() {
+  googleRef = google;
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 12,
+    center: {lat: 57.706273, lng: 11.941107},
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+  lineSymbol = {
+    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+  };
+}
+
+function animateCircle(line) {
+   var count = 0;
+   window.setInterval(function() {
+     count = (count + 1) % 200;
+
+     var icons = line.get('icons');
+     icons[0].offset = (count / 2) + '%';
+     line.set('icons', icons);
+ }, 20);
+}
+
+function addRoutesToMap(cars) {
+
+  
+
+    for (var carId in cars) {
+      if (cars.hasOwnProperty(carId))
+      {
+        var routeColor = colorObject.getNext();
+
+        for (var routeId in cars[carId].routes)
+        {
+          if (cars[carId].routes.hasOwnProperty(routeId))
+          {
+
+            var route = cars[carId].routes[routeId];
+            if(route.hasOwnProperty('routeCoordinates')) 
+            {
+              //console.dir(route)
+              //console.dir(route.routeCoordinates)
+
+              var flightPath = new googleRef.maps.Polyline({
+                path: route.routeCoordinates,
+                geodesic: true,
+                strokeColor: routeColor,
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                icons: [{
+                  icon: lineSymbol,
+                  offset: '100%',
+                  //repeat: '60px'
+                }],
+                map: map
+              });
+
+              //flightPath.setMap(map);
+              animateCircle(flightPath);
+
+            }
+
+          }
+        }
+      }
+    }
+    /*
+    list[carId].routes.keys.forEach(function(routeId) {
+      //console.log("rendering route..");
+      var flightPath = new google.maps.Polyline({
+        path: route.routeCordinates,
+        geodesic: true,
+        strokeColor: colorObject.getNext(),
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+        icons: [{
+          icon: lineSymbol,
+          offset: '100%',
+          repeat: '60px'
+        }]
+      });
+
+      flightPath.setMap(map);
+    })
+  });
+  */
+};
+
+$.getJSON("test.json", function(json) {
+    //console.log(json); // this will show the info it in firebug console
+    addRoutesToMap(json);
+});
+
+
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDyENqQzYFU0wks5RAQLoHwD6GAX2Rwxhw&signed_in=true&callback=initMap"></script>
+  </body>
+</html>
